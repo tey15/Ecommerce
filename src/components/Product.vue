@@ -1,123 +1,110 @@
 <template>
-  <div class="product-card">
-
-    <!-- BADGE (Promotion / Hot / Sale) -->
-    <div
-      v-if="badgeText"
-      class="badge"
-      :class="badgeColor"
-    >
-      {{ badgeText }}
-    </div>
-
-    <!-- IMAGE -->
-    <img :src="image" class="product-img" />
-
-    <div class="info">
-      <p class="brand">Hodo Foods</p>
-      <h3 class="title">{{ product.name }}</h3>
-
-      <!-- RATING -->
-      <div class="rating">
-        <i 
-          v-for="n in 5" 
-          :key="n"
-          class="fa-star"
-          :class="n <= product.rating ? 'fas filled' : 'far empty'"
-        ></i>
-        <span class="rating-number">{{ product.rating }}</span>
+  <RouterLink :to="`/product/${product.id}`" class="product-link">
+    <div class="product-card">
+      <!-- BADGE -->
+      <div v-if="badgeText" class="badge" :class="badgeColor">
+        {{ badgeText }}
       </div>
 
-      <p class="size">{{ product.size }}</p>
+      <!-- IMAGE -->
+      <img :src="image" class="product-img" />
 
-      <!-- PRICES -->
-      <div class="price-row">
-        <span class="new-price">${{ product.price }}</span>
+      <div class="info">
+        <p class="brand">Hodo Foods</p>
+        <h3 class="title">{{ product.name }}</h3>
 
-        <!-- Old price (API or calculated) -->
-        <span v-if="finalOldPrice" class="old-price">
-          ${{ finalOldPrice }}
-        </span>
-        
-        <button 
-          class="btn-add" 
-          v-if="qty === 0" 
-          @click="increase"
-          >
-          Add +
-        </button>
+        <!-- RATING -->
+        <div class="rating">
+          <i
+            v-for="n in 5"
+            :key="n"
+            class="fa-star"
+            :class="n <= product.rating ? 'fas filled' : 'far empty'"
+          ></i>
+          <span class="rating-number">{{ product.rating }}</span>
+        </div>
 
-        <button class="btn-add" v-else>
-          <div class="qty-inline">
-            <span class="qty-icon" @click.stop="decrease">▾</span>
-            <span class="qty-value">{{ qty }}</span>
-            <span class="qty-icon" @click.stop="increase">▴</span>
-          </div>
-        </button>
+        <p class="size">{{ product.size }}</p>
 
+        <!-- PRICES -->
+        <div class="price-row">
+          <span class="new-price">${{ product.price }}</span>
+
+          <span v-if="finalOldPrice" class="old-price"> ${{ finalOldPrice }} </span>
+
+          <button class="btn-add" v-if="qty === 0" @click.stop="increase">Add +</button>
+
+          <button class="btn-add" v-else @click.stop>
+            <div class="qty-inline">
+              <span class="qty-icon" @click.stop="decrease">▾</span>
+              <span class="qty-value">{{ qty }}</span>
+              <span class="qty-icon" @click.stop="increase">▴</span>
+            </div>
+          </button>
+        </div>
       </div>
-
     </div>
-  </div>
+  </RouterLink>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+defineOptions({ name: 'AppProduct' })
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   product: Object,
-});
+})
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = 'http://localhost:3000'
 
 /* --------------------------
    IMAGE FIXER
 --------------------------- */
 function normalizeImagePath(img) {
-  if (!img) return null;
+  if (!img) return null
   try {
-    const arr = JSON.parse(img);
-    return arr[0].replace(/\\/g, "/");
+    const arr = JSON.parse(img)
+    return arr[0].replace(/\\/g, '/')
   } catch {
-    return img.replace(/\\/g, "/");
+    return img.replace(/\\/g, '/')
   }
 }
 
 const image = computed(() => {
-  const clean = normalizeImagePath(props.product.image);
-  if (!clean) return "https://via.placeholder.com/300x200?text=No+Image";
-  if (clean.startsWith("http")) return clean;
-  return `${API_BASE_URL}/${clean}`;
-});
+  const clean = normalizeImagePath(props.product.image)
+  if (!clean) return 'https://via.placeholder.com/300x200?text=No+Image'
+  if (clean.startsWith('http')) return clean
+  return `${API_BASE_URL}/${clean}`
+})
 
 /* --------------------------
    BADGE LOGIC
 --------------------------- */
 const isHot = computed(() => {
-  return props.product.countSold > 10 || props.product.rating >= 5;
-});
+  return props.product.countSold > 10 || props.product.rating >= 5
+})
 
 const isSale = computed(() => {
   // Rule: product is on Sale if countSold = 0 OR promotion percentage > 0
-  return props.product.countSold === 0 ||
-         (!!props.product.promotionAsPercentage && Number(props.product.promotionAsPercentage) > 0);
-
-});
+  return (
+    props.product.countSold === 0 ||
+    (!!props.product.promotionAsPercentage && Number(props.product.promotionAsPercentage) > 0)
+  )
+})
 
 const badgeText = computed(() => {
-  if (props.product.promotionAsPercentage)
-    return `-${props.product.promotionAsPercentage}%`;
-  if (isHot.value) return "Hot";
-  if (isSale.value) return "Sale";
-  return null;
-});
+  if (props.product.promotionAsPercentage) return `-${props.product.promotionAsPercentage}%`
+  if (isHot.value) return 'Hot'
+  if (isSale.value) return 'Sale'
+  return null
+})
 
 const badgeColor = computed(() => {
-  if (props.product.promotionAsPercentage) return "green";
-  if (isHot.value) return "red";
-  if (isSale.value) return "yellow";
-  return "";
-});
+  if (props.product.promotionAsPercentage) return 'green'
+  if (isHot.value) return 'red'
+  if (isSale.value) return 'yellow'
+  return ''
+})
 
 /* --------------------------
    OLD PRICE FROM API OR AUTO-CALCULATE
@@ -139,20 +126,22 @@ const badgeColor = computed(() => {
 const finalOldPrice = computed(() => {
   // Prefer backend oldPrice if available
   if (props.product.oldPrice !== undefined && props.product.oldPrice !== null) {
-    return props.product.oldPrice;
+    return props.product.oldPrice
   }
 
   // Always generate an old price (example: +20%)
-  const price = props.product.price;
-  return (price * 1.116).toFixed(2);
-});
+  const price = props.product.price
+  return (price * 1.116).toFixed(2)
+})
 
 /* --------------------------
    QUANTITY CONTROL
 --------------------------- */
-const qty = ref(0);
-const increase = () => qty.value++;
-const decrease = () => { if (qty.value > 0) qty.value--; };
+const qty = ref(0)
+const increase = () => qty.value++
+const decrease = () => {
+  if (qty.value > 0) qty.value--
+}
 </script>
 
 <style scoped>
@@ -181,9 +170,15 @@ const decrease = () => { if (qty.value > 0) qty.value--; };
   border-radius: 8px;
   font-size: 14px;
 }
-.badge.green { background: #10b981; }
-.badge.red { background: #ef4444; }
-.badge.yellow { background: #fbbf24; }
+.badge.green {
+  background: #10b981;
+}
+.badge.red {
+  background: #ef4444;
+}
+.badge.yellow {
+  background: #fbbf24;
+}
 
 /* IMAGE */
 .product-img {
@@ -211,8 +206,12 @@ const decrease = () => { if (qty.value > 0) qty.value--; };
   gap: 3px;
   margin: 6px 0;
 }
-.filled { color: #f6ad55; }
-.empty { color: #d1d5db; }
+.filled {
+  color: #f6ad55;
+}
+.empty {
+  color: #d1d5db;
+}
 .rating-number {
   margin-left: 6px;
   color: #6b7280;
@@ -220,7 +219,10 @@ const decrease = () => { if (qty.value > 0) qty.value--; };
 }
 
 /* SIZES & PRICES */
-.size { color: #6b7280; font-size: 13px; }
+.size {
+  color: #6b7280;
+  font-size: 13px;
+}
 .price-row {
   display: flex;
   align-items: center;
@@ -241,7 +243,6 @@ const decrease = () => { if (qty.value > 0) qty.value--; };
   display: flex;
   align-items: center;
   justify-content: center;
-
 }
 .qty-inline {
   display: flex;
@@ -256,7 +257,7 @@ const decrease = () => { if (qty.value > 0) qty.value--; };
   font-size: 14px;
   color: white;
   cursor: pointer;
-  user-select:auto
+  user-select: auto;
 }
 
 .new-price {
@@ -270,5 +271,8 @@ const decrease = () => { if (qty.value > 0) qty.value--; };
   color: #9ca3af;
   margin-right: 4rem;
 }
-
+.product-link {
+  text-decoration: none;
+  color: inherit;
+}
 </style>

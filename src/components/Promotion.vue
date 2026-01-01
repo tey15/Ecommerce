@@ -1,21 +1,20 @@
 <template>
-  <div class="promo" :style="{ backgroundColor: bgColor }">
-    <img :src="image" alt="Promotion images" />
-    <div class="content">
-      <h2>{{ title }}</h2>
-      
-      <ButtonComponent 
-        :text="buttonText" 
-        :color="buttonColor" 
-        @click="showMessage"
-      />
-      
+  <RouterLink :to="`/product/${title}`" class="product-link">
+    <div class="promo" :style="{ backgroundColor: bgColor }">
+      <img :src="image" alt="Promotion images" />
+      <div class="content">
+        <h2>{{ title }}</h2>
+
+        <ButtonComponent :text="buttonText" :color="buttonColor" @click="showMessage" />
+      </div>
     </div>
-  </div>
+  </RouterLink>
 </template>
 
 <script setup>
 import ButtonComponent from './ButtonComponent.vue'
+
+defineOptions({ name: 'AppPromotion' })
 
 const props = defineProps({
   title: String,
@@ -23,25 +22,30 @@ const props = defineProps({
   image: String,
   bgColor: String,
   buttonText: String,
-  buttonColor: String
-});
+  buttonColor: String,
+})
 
 function showMessage() {
-  alert("Let's shop: " + props.title);
+  alert("Let's shop: " + props.title)
 }
-
 </script>
 
 <style scoped>
+.product-link {
+  text-decoration: none;
+  color: inherit;
+}
 .promo {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 20px;
   border-radius: 16px;
-  color: #253D4E;
+  color: #253d4e;
   gap: 20px;
-  width: 750px;
+  /* width: 750px;
+  height: 250px; */
+  width: 440px;
   height: 250px;
 }
 .promo img {
@@ -50,7 +54,6 @@ function showMessage() {
   object-fit: none;
   object-position: right;
   border-radius: 12px;
-  
 }
 .content {
   flex: 1;
